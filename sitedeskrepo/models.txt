@@ -1,0 +1,112 @@
+// Enumerations
+enum Role {
+  ADMIN
+  AGENT
+}
+
+enum ChatStatus {
+  WAITING
+  ACTIVE
+  CLOSED
+}
+
+// User: All backend users (agents, admins)
+model User {
+  id        Int          @id @default(autoincrement())
+  name      String
+  email     String       @unique
+  password  String
+  role      Role
+  isOnline  Boolean      @default(false)
+  teams     UserTeam[]   // many-to-many with Team
+  chats     Chat[]       @relation("AgentChats")
+  notes     CustomerNote[] @relation("UserNotes")
+  createdAt DateTime     @default(now())
+}
+
+// Team: A department or group
+model Team {
+  id        Int          @id @default(autoincrement())
+  name      String       @unique
+  members   UserTeam[]   // many-to-many with User
+  categories Category[]
+  createdAt DateTime     @default(now())
+}
+
+// UserTeam: Join table for User <-> Team (many-to-many)
+model UserTeam {
+  id      Int   @id @default(autoincrement())
+  user    User  @relation(fields: [userId], references: [id])
+  userId  Int
+  team    Team  @relation(fields: [teamId], references: [id])
+  teamId  Int
+
+  @@unique([userId, teamId])
+}
+
+// Category: Issue type handled by a team
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+  team      Team     @relation(fields: [teamId], references: [id])
+  teamId    Int
+  chats     Chat[]
+}
+
+// Customer: End-user starting a chat
+model Customer {
+  id        Int          @id @default(autoincrement())
+  name      String
+  email     String
+  chats     Chat[]
+  notes     CustomerNote[]
+  createdAt DateTime     @default(now())
+}
+
+// Chat: A support ticket/session
+model Chat {
+  id         Int         @id @default(autoincrement())
+  status     ChatStatus
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  customerId Int
+  category   Category    @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  agent      User?       @relation("AgentChats", fields: [agentId], references: [id])
+  agentId    Int?
+  messages   Message[]
+  feedback   Feedback?
+  createdAt  DateTime    @default(now())
+  closedAt   DateTime?
+}
+
+// Message: Individual message in a chat
+model Message {
+  id         Int       @id @default(autoincrement())
+  chat       Chat      @relation(fields: [chatId], references: [id])
+  chatId     Int
+  senderType String    // 'customer' or 'agent'
+  senderId   Int
+  content    String
+  createdAt  DateTime  @default(now())
+}
+
+// Feedback: Feedback after chat closes
+model Feedback {
+  id         Int       @id @default(autoincrement())
+  chat       Chat      @relation(fields: [chatId], references: [id])
+  chatId     Int       @unique
+  rating     Int
+  comment    String?
+  createdAt  DateTime  @default(now())
+}
+
+// CustomerNote: Internal notes about a customer, written by agents
+model CustomerNote {
+  id         Int       @id @default(autoincrement())
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  customerId Int
+  author     User      @relation("UserNotes", fields: [authorId], references: [id])
+  authorId   Int
+  content    String
+  createdAt  DateTime  @default(now())
+}
