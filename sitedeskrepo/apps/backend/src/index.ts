@@ -6,7 +6,7 @@ import authRoutes from "./routes/auth.route";
 import orgDomainRoutes from "./routes/orgDomain.route";
 import teamRoutes from "./routes/teams.route";
 import categoryRoutes from "./routes/category.route";
-import userRoutes from "./routes/auth.route";
+import userRoutes from "./routes/user.route";
 import customerRoutes from "./routes/customer.management.route";
 import widgetRoutes from "./routes/widget.route";
 import { authenticateJWT, requireRole } from "@repo/common/middleware";

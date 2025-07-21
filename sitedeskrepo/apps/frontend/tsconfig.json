@@ -11,7 +11,11 @@
     "resolveJsonModule": true,
     "noUncheckedIndexedAccess": true,
     "isolatedModules": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src", "env.d.ts"]
 }

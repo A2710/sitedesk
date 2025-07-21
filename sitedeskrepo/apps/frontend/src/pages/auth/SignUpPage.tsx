@@ -1,79 +1,122 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useSignUp } from '../../api/auth.js';
-import {userSignup, UserSignupInput} from '@repo/common/types'
+import React from "react";
+import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSignUp } from "../../api/auth.js";
+import { userSignup, UserSignupInput } from "@repo/common/types";
+import { AuthFormWrapper } from "../../components/AuthFormWrapper.js";
+import { FormError } from "../../components/FormError.js";
+import { getFriendlyMessage } from "@/lib/error-messages.js";
+import { Button } from "@/components/ui/button.js";
+import { Input } from "@/components/ui/input.js";
+import { Label } from "@/components/ui/label.js";
 
 export default function SignUpPage() {
-  const navigate = useNavigate();
   const { register, handleSubmit, formState } = useForm<UserSignupInput>({
     resolver: zodResolver(userSignup),
   });
   const mutation = useSignUp();
 
   const onSubmit = (data: UserSignupInput) => {
-    mutation.mutate(data, {
-      onSuccess: () => navigate('/signin', { replace: true }),
-    });
+    mutation.mutate(data);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md bg-white p-8 rounded shadow">
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
-
-        <div className="mb-4">
-          <label className="block text-gray-700">Name</label>
-          <input
+    <AuthFormWrapper title="Sign Up">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-4"
+        autoComplete="on"
+      >
+        {/* Name */}
+        <div className="space-y-2">
+          <Label htmlFor="name">Name</Label>
+          <Input
+            id="name"
             type="text"
-            {...register('name')}
-            className="mt-1 block w-full border rounded p-2"
+            autoComplete="name"
+            {...register("name")}
+            aria-invalid={!!formState.errors.name}
           />
           {formState.errors.name && (
-            <p className="text-red-500 text-sm">{formState.errors.name.message}</p>
+            <p className="text-red-500 text-xs mt-1">{formState.errors.name.message}</p>
           )}
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700">Email</label>
-          <input
+        {/* Organization Name */}
+        <div className="space-y-2">
+          <Label htmlFor="organizationName">Organization Name</Label>
+          <Input
+            id="organizationName"
+            type="text"
+            autoComplete="organization"
+            {...register("organizationName")}
+            aria-invalid={!!formState.errors.organizationName}
+          />
+          {formState.errors.organizationName && (
+            <p className="text-red-500 text-xs mt-1">{formState.errors.organizationName.message}</p>
+          )}
+        </div>
+
+        {/* Email */}
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
             type="email"
-            {...register('email')}
-            className="mt-1 block w-full border rounded p-2"
+            autoComplete="email"
+            {...register("email")}
+            aria-invalid={!!formState.errors.email}
           />
           {formState.errors.email && (
-            <p className="text-red-500 text-sm">{formState.errors.email.message}</p>
+            <p className="text-red-500 text-xs mt-1">{formState.errors.email.message}</p>
           )}
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700">Password</label>
-          <input
+        {/* Password */}
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
             type="password"
-            {...register('password')}
-            className="mt-1 block w-full border rounded p-2"
+            autoComplete="new-password"
+            {...register("password")}
+            aria-invalid={!!formState.errors.password}
           />
           {formState.errors.password && (
-            <p className="text-red-500 text-sm">{formState.errors.password.message}</p>
+            <p className="text-red-500 text-xs mt-1">{formState.errors.password.message}</p>
           )}
         </div>
 
-        <button
+        {/* Form error */}
+        <FormError error={mutation.isError ? getFriendlyMessage(mutation.error) : undefined} />
+
+        {/* Submit button */}
+        <Button
           type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50"
+          className="w-full bg-zinc-900 text-white" 
           disabled={mutation.isPending}
         >
-          {mutation.isPending ? 'Signing up...' : 'Sign Up'}
-        </button>
+          {mutation.isPending ? (
+            <>
+              <span className="animate-spin inline-block mr-2">⏳</span>
+              Signing up...
+            </>
+          ) : (
+            "Sign Up"
+          )}
+        </Button>
 
-        <p className="mt-4 text-center">
-          Already have an account?{' '}
-          <Link to="/signin" className="text-blue-600 hover:underline">
-            Sign In
-          </Link>
-        </p>
+        {/* Footer */}
+        <div className="mt-6 flex items-center justify-between text-sm">
+          <span>
+            Already have an account?{" "}
+            <Link to="/signin" className="text-blue-600 hover:underline font-medium">
+              Sign In
+            </Link>
+          </span>
+        </div>
       </form>
-    </div>
+    </AuthFormWrapper>
   );
 }

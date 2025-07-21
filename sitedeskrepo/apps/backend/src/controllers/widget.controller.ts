@@ -68,7 +68,7 @@ export const widgetStartChat: RequestHandler = async (req : Request, res : Respo
     data: {
       status: "WAITING",
       customerId: customer.id,
-      categoryId: categoryId
+      categoryId: categoryId as number
     }
   });
   res.status(201).json({ chatId: chat.id, status: "WAITING" });

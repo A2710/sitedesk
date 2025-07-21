@@ -1,15 +1,34 @@
-import { Routes, Route } from "react-router-dom";
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import SignInPage from "../pages/auth/SignInPage.js";
 import SignUpPage from "../pages/auth/SignUpPage.js";
+import RequireAuth from "../components/RequireAuth.js";
+import MainLayout from "../layouts/MainLayout.js";
 import Dashboard from "../pages/dashboard/Dashboard.js";
+// Import other pages as needed
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/signin" element={<SignInPage />} />
+      <Route
+        path="/*"
+        element={
+          <RequireAuth roles={["ADMIN", "AGENT"]}>
+            <MainLayout />
+          </RequireAuth>
+        }
+      >
+        {/* Index route */}
+        <Route index element={<Dashboard />} />
+        {/* Example nested routes: */}
+        {/* <Route path="chats" element={<ChatsPage />} /> */}
+        {/* <Route path="profile" element={<ProfilePage />} /> */}
+        {/* Add more shared or role-based routes here */}
+      </Route>
+      
       <Route path="/signup" element={<SignUpPage />} />
-      <Route path="/" element={<Dashboard />} />
-      {/* ...other routes */}
+      <Route path="/signin" element={<SignInPage />} />
+      <Route path="*" element={<Navigate to="/signup" replace />} />
     </Routes>
   );
 }
