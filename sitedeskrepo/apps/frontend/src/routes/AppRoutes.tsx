@@ -5,6 +5,7 @@ import SignUpPage from "../pages/auth/SignUpPage.js";
 import RequireAuth from "../components/RequireAuth.js";
 import MainLayout from "../layouts/MainLayout.js";
 import Dashboard from "../pages/dashboard/Dashboard.js";
+import CategoriesPage from "@/pages/categories/index.js";
 // Import other pages as needed
 
 export default function AppRoutes() {
@@ -20,6 +21,7 @@ export default function AppRoutes() {
       >
         {/* Index route */}
         <Route index element={<Dashboard />} />
+        <Route path="categories" element={<CategoriesPage/>} />
         {/* Example nested routes: */}
         {/* <Route path="chats" element={<ChatsPage />} /> */}
         {/* <Route path="profile" element={<ProfilePage />} /> */}

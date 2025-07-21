@@ -55,6 +55,17 @@ export const categorySchema = z.object({
 });
 export type CategoryInput = z.infer<typeof categorySchema>;
 
+// FOR CATEGORY OUTPUT
+
+export interface categoriesOutput {
+    id: number;
+    name: string;
+    organizationId: number;
+}
+
+export type editCategoryInput = Pick<categoriesOutput, 'id' | 'name'>;
+export type deleteCategoryInput = Pick<categoriesOutput, 'id'>;
+
 //
 // ── USER ────────────────────────────────────────────────────────
 //

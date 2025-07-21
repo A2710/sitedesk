@@ -6,6 +6,7 @@ export function useRoleMenu(role: string) {
   const adminMenu = [
     { to: "/users", label: "Manage Users" },
     { to: "/settings", label: "Settings" },
+    { to: "/categories", label: "Categories"}
   ];
 
   const agentMenu = [

@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { useCurrentUser } from "../api/auth.js";
+import { useCurrentUser } from "../hooks/auth.js";
 import { Sidebar } from "../components/SideBar.js";
 import { Topbar } from "../components/TopBar.js";
 

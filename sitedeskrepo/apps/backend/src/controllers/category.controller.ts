@@ -1,11 +1,11 @@
 import { Request, Response, RequestHandler } from "express";
-import { categorySchema, CategoryInput } from "@repo/common/types";
+import { categorySchema, CategoryInput, categoriesOutput } from "@repo/common/types";
 import { prismaClient } from "@repo/db/client";
 
 export const listCategories:RequestHandler = async (req: Request, res: Response) : Promise<void> => {
     try {
         const organizationId = req.user!.organizationId;
-        const categories = await prismaClient.category.findMany({
+        const categories:categoriesOutput[] = await prismaClient.category.findMany({
             where: { organizationId }
         });
         res.status(200).json(categories);
@@ -71,7 +71,7 @@ export const createCategory : RequestHandler = async (req: Request, res: Respons
         return;
     }
 
-    const category = await prismaClient.category.create({
+    const category:categoriesOutput = await prismaClient.category.create({
       data: { 
         name, 
         organizationId 
@@ -124,7 +124,7 @@ export const editCategory : RequestHandler = async (req: Request, res: Response)
             return;
         }
 
-        const updated = await prismaClient.category.update({
+        const updated:categoriesOutput = await prismaClient.category.update({
             where: { id: current.id },
             data: { name }
         });

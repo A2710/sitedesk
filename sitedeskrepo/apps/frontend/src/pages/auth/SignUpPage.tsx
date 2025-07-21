@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSignUp } from "../../api/auth.js";
+import { useSignUp } from "../../hooks/auth.js";
 import { userSignup, UserSignupInput } from "@repo/common/types";
 import { AuthFormWrapper } from "../../components/AuthFormWrapper.js";
 import { FormError } from "../../components/FormError.js";
