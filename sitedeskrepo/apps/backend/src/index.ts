@@ -35,5 +35,4 @@ app.use("/api/widget", widgetRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-
 });

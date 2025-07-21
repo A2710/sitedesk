@@ -17,6 +17,21 @@ export const userSignin = z.object({
 });
 export type UserSigninInput = z.infer<typeof userSignin>;
 
+
+//for user
+export interface JwtPayload {
+  id: number;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'AGENT' | 'CUSTOMER';
+  organizationId: number;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: JwtPayload;
+}
+
 //
 // ── ORG DOMAIN ────────────────────────────────────────────────────────────────
 //
@@ -41,7 +56,7 @@ export const categorySchema = z.object({
 export type CategoryInput = z.infer<typeof categorySchema>;
 
 //
-// ── ADMIN USER (AGENT) ─────────────────────────────────────────────────────────
+// ── USER ────────────────────────────────────────────────────────
 //
 export const adminUserCreateSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -61,6 +76,24 @@ export const adminUserUpdateSchema = z.object({
   teamId: z.number().int().positive().optional(),
 });
 export type AdminUserUpdateInput = z.infer<typeof adminUserUpdateSchema>;
+
+export interface TeamInfo {
+  id: number;
+  name: string;
+  organizationId: number;
+  createdAt: Date; // Date serialized to string
+}
+
+export interface GetMeResponse {
+  id: number;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'AGENT';
+  isOnline: boolean;
+  createdAt: Date; // Date serialized to string
+  teamsDataArray: TeamInfo[];
+}
+
 
 //
 // ── TEAMS ─────────────────────────────────────────────────────────────────────

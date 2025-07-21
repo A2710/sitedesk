@@ -1,6 +1,6 @@
 import { RequestHandler, Request, Response } from "express";
 import { prismaClient } from "@repo/db/client";
-import { adminUserCreateSchema, AdminUserCreateInput, adminUserUpdateSchema, AdminUserUpdateInput } from "@repo/common/types";
+import { adminUserCreateSchema, AdminUserCreateInput, adminUserUpdateSchema, AdminUserUpdateInput, GetMeResponse } from "@repo/common/types";
 import bcrypt from "bcryptjs";
 
 export const listUsers: RequestHandler = async (req : Request, res: Response) : Promise<void> => {
@@ -54,10 +54,12 @@ export const getMe: RequestHandler = async (req: Request, res: Response) : Promi
         const {teams: teamsincluded, ...restData} = user;
         const teamsDataArray = teamsincluded.map(t => t.team);
 
-        res.status(200).json({
+        const data:GetMeResponse = {
             ...restData,
             teamsDataArray
-        });
+        };
+
+        res.status(200).json(data);
         return;
     } catch (error) {
         console.error("Error in getMe:", error);
