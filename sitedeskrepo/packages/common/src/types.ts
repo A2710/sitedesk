@@ -124,6 +124,31 @@ export const assignAgentsToTeamSchema = z.object({
 });
 export type AssignAgentsToTeamInput = z.infer<typeof assignAgentsToTeamSchema>;
 
+export interface ListTeamsCategory {
+  categoryId: number;
+  categoryName: string;
+}
+
+export interface ListTeamsMember {
+  userId: number;
+  userName: string;
+}
+
+export interface ListTeamsOutput {
+  id: number;
+  name: string;
+  categories: ListTeamsCategory[];
+  members: ListTeamsMember[];
+}
+
+export interface TeamCreateOutput {
+  id: number;
+  name: string;
+  organizationId: number;
+  createdAt: Date; // or Date, depending on your API serialization
+}
+
+
 //
 // ── CUSTOMERS & WIDGET ────────────────────────────────────────────────────────
 //

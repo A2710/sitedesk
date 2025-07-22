@@ -1,5 +1,5 @@
 import { Request, Response, RequestHandler } from "express";
-import { createTeamSchema, CreateTeamInput, assignCategoriesToTeamSchema, AssignCategoriesToTeamInput, assignAgentsToTeamSchema, AssignAgentsToTeamInput } from "@repo/common/types";
+import { createTeamSchema, CreateTeamInput, assignCategoriesToTeamSchema, AssignCategoriesToTeamInput, assignAgentsToTeamSchema, AssignAgentsToTeamInput, ListTeamsOutput, TeamCreateOutput } from "@repo/common/types";
 import { prismaClient } from "@repo/db/client";
 
 export const listTeams: RequestHandler = async (req: Request, res: Response) : Promise<void> => {
@@ -22,12 +22,11 @@ export const listTeams: RequestHandler = async (req: Request, res: Response) : P
       }
     });
 
-    const output = teams.map(team => ({
+    const output: ListTeamsOutput[] = teams.map(team => ({
         id: team.id,
         name: team.name,
-        createdAt: team.createdAt,
-        categories: team.categories.map(tc => ({categoryId: tc.categoryId, category: tc.category})),
-        members: team.members.map(tm => ({userId: tm.userId, user: tm.user})),
+        categories: team.categories.map(tc => ({categoryId: tc.categoryId, categoryName: tc.category.name})),
+        members: team.members.map(tm => ({userId: tm.userId, userName: tm.user.name})),
     }));
 
     res.status(200).json(output);
@@ -67,18 +66,21 @@ export const getTeamById: RequestHandler = async (req: Request, res: Response): 
       return;
     }
 
-    const output = {
+    const members = team.members.map(tm => ({
+      userId: tm.user.id,
+      userName: tm.user.name
+    }))
+
+    const categories = team.categories.map(tc => ({
+      categoryId: tc.category.id,
+      categoryName: tc.category.name
+    }))
+
+    const output: ListTeamsOutput = {
       id: team.id,
       name: team.name,
-      createdAt: team.createdAt,
-      categories: team.categories.map(tc => ({
-        categoryId: tc.categoryId,
-        category: tc.category
-      })),
-      members: team.members.map(tm => ({
-        userId: tm.userId,
-        user: tm.user
-      }))
+      categories,
+      members
     };
 
     res.status(200).json(output);
@@ -108,7 +110,7 @@ export const createTeam: RequestHandler = async (req: Request, res: Response): P
       return;
     }
 
-    const team = await prismaClient.team.create({
+    const team:TeamCreateOutput = await prismaClient.team.create({
       data: { name, organizationId }
     });
 
@@ -149,7 +151,7 @@ export const updateTeam: RequestHandler = async (req: Request, res: Response): P
         return;
     }
 
-    const updated = await prismaClient.team.update({
+    const updated:TeamCreateOutput = await prismaClient.team.update({
         where: {
             id: Number(id) 
         },

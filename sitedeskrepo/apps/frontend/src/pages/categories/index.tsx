@@ -67,26 +67,6 @@ export default function CategoriesPage() {
     return (
       <div className="p-8 max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Categories</h1>
-        <form onSubmit={addForm.handleSubmit(handleAddSubmit)} className="flex gap-2 mb-6">
-          <Input 
-            {...addForm.register("name")}
-            placeholder="Add New Category"
-            disabled = {addCategory.isPending}
-          >
-          </Input>
-          <Button
-            type="submit"
-            className="bg-green-600 text-white px-4 rounded"
-            disabled={addCategory.isPending}
-          >
-            Add
-          </Button>
-        </form>
-        {addForm.formState.errors.name && (
-          <div className="text-red-600 mb-4">{addForm.formState.errors.name.message}</div>
-        )}
-        <FormError error={addCategory.isError ? getFriendlyMessage(addCategory.error) : undefined} />
-
         {isLoading ? (
           <div>Loading...</div>
           ) : (
@@ -150,6 +130,26 @@ export default function CategoriesPage() {
               )}
             </ul>
           )}
+
+          <form onSubmit={addForm.handleSubmit(handleAddSubmit)} className="flex gap-2 mb-6">
+          <Input 
+            {...addForm.register("name")}
+            placeholder="Add New Category"
+            disabled = {addCategory.isPending}
+          >
+          </Input>
+          <Button
+            type="submit"
+            className="bg-green-600 text-white px-4 rounded"
+            disabled={addCategory.isPending}
+          >
+            Add
+          </Button>
+        </form>
+        {addForm.formState.errors.name && (
+          <div className="text-red-600 mb-4">{addForm.formState.errors.name.message}</div>
+        )}
+        <FormError error={addCategory.isError ? getFriendlyMessage(addCategory.error) : undefined} />
 
       </div>
     );
