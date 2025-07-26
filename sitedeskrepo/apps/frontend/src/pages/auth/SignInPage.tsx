@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSignIn } from "../../hooks/auth.js";
 import { userSignin, UserSigninInput } from "@repo/common/types";
-import { AuthFormWrapper } from "../../components/AuthFormWrapper.js";
+import { AuthFormWrapper } from "../../components/auth/AuthFormWrapper.js";
 import { FormError } from "../../components/FormError.js";
 import { getFriendlyMessage } from "@/lib/error-messages.js";
 import { Button } from "@/components/ui/button.js";

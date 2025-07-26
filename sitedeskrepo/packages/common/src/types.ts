@@ -34,6 +34,14 @@ export interface AuthResponse {
 
 //
 // ── ORG DOMAIN ────────────────────────────────────────────────────────────────
+
+export type OrganizationBase = {
+  id: number;
+  name: string;
+  createdAt: Date;
+};
+
+
 //
 export const orgDomainSchema = z.object({
   domain: z
@@ -78,6 +86,14 @@ export const adminUserCreateSchema = z.object({
 });
 export type AdminUserCreateInput = z.infer<typeof adminUserCreateSchema>;
 
+export interface AdminUserCreateOutput {
+  id: Number;
+  name: String;
+  email: String;
+  role: 'ADMIN' | 'AGENT';
+  teamid?: Number | undefined;
+}
+
 export const adminUserUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   email: z.email("Invalid email format").optional(),
@@ -101,8 +117,9 @@ export interface GetMeResponse {
   email: string;
   role: 'ADMIN' | 'AGENT';
   isOnline: boolean;
-  createdAt: Date; // Date serialized to string
+  createdAt: Date;
   teamsDataArray: TeamInfo[];
+  organizationId?: number;
 }
 
 

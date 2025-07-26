@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useCurrentUser } from '../hooks/auth.js'; // Adjust the path as needed
+import { useCurrentUser } from '../../hooks/auth.js'; // Adjust the path as needed
 import type { GetMeResponse } from '@repo/common/types';
 
 interface RequireAuthProps {

@@ -8,6 +8,7 @@ export function useRoleMenu(role: string) {
     { to: "/settings", label: "Settings" },
     { to: "/categories", label: "Categories"},
     { to: "/teams", label: "Teams"},
+    { to: "/domain", label: "Domain"}
   ];
 
   const agentMenu = [

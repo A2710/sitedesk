@@ -28,7 +28,7 @@ export const getDomainById: RequestHandler = async (req: Request, res: Response)
 export const listDomains: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     try {
         const organizationId = req.user!.organizationId;
-        const domains = await prismaClient.orgDomain.findMany({ 
+        const domains = await prismaClient.orgDomain.findMany({
             where: {
                 organizationId
             }

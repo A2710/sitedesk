@@ -85,6 +85,7 @@ export const signup: RequestHandler = async (req: Request, res: Response): Promi
 
 export const signin: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     const parsedResult = userSignin.safeParse(req.body);
+    console.log("signing Invoked with: ", userSignin);
     if(!parsedResult.success)
     {
         res.status(400).json({

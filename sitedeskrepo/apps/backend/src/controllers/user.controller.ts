@@ -1,6 +1,6 @@
 import { RequestHandler, Request, Response } from "express";
 import { prismaClient } from "@repo/db/client";
-import { adminUserCreateSchema, AdminUserCreateInput, adminUserUpdateSchema, AdminUserUpdateInput, GetMeResponse } from "@repo/common/types";
+import { adminUserCreateSchema, AdminUserCreateInput, adminUserUpdateSchema, AdminUserUpdateInput, GetMeResponse, AdminUserCreateOutput } from "@repo/common/types";
 import bcrypt from "bcryptjs";
 
 export const listUsers: RequestHandler = async (req : Request, res: Response) : Promise<void> => {
@@ -23,7 +23,23 @@ export const listUsers: RequestHandler = async (req : Request, res: Response) : 
                 } 
             }
         });
-        res.json(users);
+
+        const result: GetMeResponse[] = users.map(user => ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role as 'ADMIN' | 'AGENT',
+            isOnline: user.isOnline,
+            createdAt: user.createdAt,
+            teamsDataArray: user.teams.map(ut => ({
+                id: ut.team.id,
+                name: ut.team.name,
+                organizationId: ut.team.organizationId,
+                createdAt: ut.team.createdAt,
+            })),
+        }));
+
+        res.json(result);
     }
     catch(error:any)
     {
@@ -43,7 +59,11 @@ export const getMe: RequestHandler = async (req: Request, res: Response) : Promi
             role: true,
             isOnline: true,
             createdAt: true,
-            teams: { include: { team: true } }
+            teams: { 
+                include: { 
+                    team: true 
+                } 
+            }
         }
         });
         if (!user) {
@@ -56,7 +76,8 @@ export const getMe: RequestHandler = async (req: Request, res: Response) : Promi
 
         const data:GetMeResponse = {
             ...restData,
-            teamsDataArray
+            teamsDataArray,
+            organizationId: req.user!.organizationId
         };
 
         res.status(200).json(data);
@@ -89,7 +110,7 @@ export const createUser: RequestHandler = async (req: Request, res: Response) : 
         if (existing) {
             res.status(409).json({ message: "User already exists" });
             return;
-        } 
+        }
 
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
@@ -105,6 +126,7 @@ export const createUser: RequestHandler = async (req: Request, res: Response) : 
         });
 
         //team assignment
+        let t;
         if (teamId) {
             const team = await prismaClient.team.findFirst({
                 where: { 
@@ -126,10 +148,13 @@ export const createUser: RequestHandler = async (req: Request, res: Response) : 
                         teamId 
                     } 
                 });
+                t=team.id;
             }
         }
 
-        res.status(201).json({ id: user.id, name: user.name, email: user.email, role: user.role, team: teamId });
+        const output: AdminUserCreateOutput = { id: user.id, name: user.name, email: user.email, role: user.role, teamid: t };
+
+        res.status(201).json();
 
     } catch (error) {
         console.error("Error in createUser:", error);
@@ -289,6 +314,8 @@ export const deleteUser : RequestHandler = async (req: Request, res: Response) :
             res.status(404).json({ message: "User not found." });
             return;
         }
+
+        
 
         // Delete the user
         await prismaClient.user.delete({ 

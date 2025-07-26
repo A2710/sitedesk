@@ -6,7 +6,8 @@ import {
   UserSignupInput,
   JwtPayload,
   AuthResponse,
-  GetMeResponse
+  GetMeResponse,
+  OrganizationBase
 } from '@repo/common/types';
 
 async function doSignup(data: UserSignupInput): Promise<AuthResponse> {
@@ -61,5 +62,18 @@ export function useCurrentUser() {
         .then(res => res.data),
     retry: false,
     staleTime: 5 * 60_000,
+  });
+}
+
+export function useOrganization(orgId?: number) {
+  return useQuery<OrganizationBase, Error>({
+    queryKey: ["organization", orgId],
+    queryFn: async () => {
+      if (!orgId) throw new Error("Organization ID is not defined");
+      const res = await apiClient.get(`/org/${orgId}`);
+      return res.data;
+    },
+    enabled: !!orgId,
+    staleTime: Infinity,
   });
 }

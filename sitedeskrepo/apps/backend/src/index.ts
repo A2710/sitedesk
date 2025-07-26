@@ -9,6 +9,7 @@ import categoryRoutes from "./routes/category.route";
 import userRoutes from "./routes/user.route";
 import customerRoutes from "./routes/customer.management.route";
 import widgetRoutes from "./routes/widget.route";
+import orgRoutes from "./routes/org.route";
 import { authenticateJWT, requireRole } from "@repo/common/middleware";
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(cors({
 //main routes
 
 app.use("/api/auth", authRoutes);
+app.use("/api/org", authenticateJWT, requireRole("ADMIN", "AGENT"), orgRoutes);
 app.use("/api/orgDomain",authenticateJWT, requireRole("ADMIN"), orgDomainRoutes);
 app.use("/api/teams",authenticateJWT, teamRoutes);
 app.use("/api/category", authenticateJWT, requireRole("ADMIN"), categoryRoutes);
