@@ -10,7 +10,9 @@ import userRoutes from "./routes/user.route";
 import customerRoutes from "./routes/customer.management.route";
 import widgetRoutes from "./routes/widget.route";
 import orgRoutes from "./routes/org.route";
+import { setupSocketHandlers } from "./socket";
 import { authenticateJWT, requireRole } from "@repo/common/middleware";
+import { createServer } from "http";
 
 const app = express();
 dotenv.config();
@@ -24,8 +26,10 @@ app.use(cors({
     credentials: true
 }));
 
-//main routes
+const httpServer = createServer(app);
+setupSocketHandlers(httpServer);
 
+//main routes
 app.use("/api/auth", authRoutes);
 app.use("/api/org", authenticateJWT, requireRole("ADMIN", "AGENT"), orgRoutes);
 app.use("/api/orgDomain",authenticateJWT, requireRole("ADMIN"), orgDomainRoutes);
@@ -35,6 +39,6 @@ app.use("/api/users", authenticateJWT, userRoutes);
 app.use("/api/customer", authenticateJWT, requireRole("ADMIN", "AGENT"), customerRoutes);
 app.use("/api/widget", widgetRoutes);
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

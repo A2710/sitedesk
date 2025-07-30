@@ -34,6 +34,8 @@ model Organization {
   categories  Category[]
   customers   Customer[]
   domains     OrgDomain[]
+  chats       Chat[]
+  messages    Message[]
   createdAt   DateTime      @default(now())
 }
 
@@ -92,6 +94,7 @@ model Category {
   chats           Chat[]
   organization    Organization    @relation(fields: [organizationId], references: [id])
   organizationId  Int
+  @@unique([organizationId, name])
 }
 
 // Team <-> Category Join Table (Many-to-Many)
@@ -119,7 +122,7 @@ model Customer {
 
 // Chat (Support Ticket/Session)
 model Chat {
-  id         Int         @id @default(autoincrement())
+  id         String         @id @default(uuid())
   status     ChatStatus
   customer   Customer    @relation(fields: [customerId], references: [id])
   customerId Int
@@ -129,6 +132,8 @@ model Chat {
   agentId    Int?
   messages   Message[]
   customerNotes CustomerNote[] 
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  organizationId  Int
   feedback   Feedback?
   createdAt  DateTime    @default(now())
   closedAt   DateTime?
@@ -136,22 +141,24 @@ model Chat {
 
 // Message (in Chat)
 model Message {
-  id         Int       @id @default(autoincrement())
+  id         String       @id @default(uuid())
   chat       Chat      @relation(fields: [chatId], references: [id])
-  chatId     Int
+  chatId     String
   senderType String    // 'customer' or 'agent'
   receiverType String   // 'customer' or 'agent'
   receiverId   Int
   senderId   Int
   content    String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  organizationId Int
   createdAt  DateTime  @default(now())
 }
 
 // Feedback (per Chat)
 model Feedback {
-  id         Int       @id @default(autoincrement())
+  id         String       @id @default(uuid())
   chat       Chat      @relation(fields: [chatId], references: [id])
-  chatId     Int       @unique
+  chatId     String       @unique
   rating     Int
   comment    String?
   createdAt  DateTime  @default(now())
@@ -159,11 +166,11 @@ model Feedback {
 
 // Customer Note (internal by agent)
 model CustomerNote {
-  id          Int       @id @default(autoincrement())
+  id          String       @id @default(uuid())
   customer    Customer  @relation(fields: [customerId], references: [id])
   customerId  Int
   chat        Chat      @relation(fields: [chatId], references: [id])
-  chatId      Int
+  chatId      String
   author      User      @relation("UserNotes", fields: [authorId], references: [id])
   authorId    Int
   content     String

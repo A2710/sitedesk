@@ -3,6 +3,7 @@ import { prismaClient } from "@repo/db/client";
 import { customerSchema, CustomerInput, startChatSchema, StartChatInput } from "@repo/common/types";
 import { generateToken } from "@repo/common/utils";
 import { promises } from "dns";
+import { redisClient } from "@repo/redis";
 
 // 1. Customer Login/Signup
 export const widgetCustomerLogin: RequestHandler = async (req : Request, res : Response) : Promise<void> => {
@@ -45,37 +46,59 @@ export const widgetGetCategories: RequestHandler = async (req : Request, res : R
 
 //initiate the chat - basically can be called as the token
 
-export const widgetStartChat: RequestHandler = async (req : Request, res : Response) : Promise<void> => {
+export const widgetStartChat: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   const customer = req.customer!;
   const parsed = startChatSchema.safeParse(req.body);
+
   if (!parsed.success) {
-    res.status(400).json({ message: "Invalid input", issues: parsed.error.issues });
+    res
+      .status(400)
+      .json({ message: "Invalid input", issues: parsed.error.issues });
     return;
   }
+
   const { categoryId }: StartChatInput = parsed.data;
 
-  // Verify category belongs to org
-  const category = await prismaClient.category.findFirst({
-    where: { id: categoryId, organizationId: customer.organizationId }
-  });
-  if (!category) {
-    res.status(400).json({ message: "Invalid category." });
+  try {
+    
+    const category = await prismaClient.category.findFirst({
+      where: {
+        id: categoryId,
+        organizationId: customer.organizationId
+      }
+    });
+
+    if (!category) {
+      res.status(400).json({ message: "Invalid category." });
+      return;
+    }
+
+    // first entry point for the chats
+    const chat = await prismaClient.chat.create({
+      data: {
+        organizationId: customer.organizationId, // required now
+        status: "WAITING",
+        customerId: customer.id,
+        categoryId
+      }
+    });
+
+    // store them in fcfs queue
+    const queueKey = `queue:org:${customer.organizationId}:category:${categoryId}`;
+    await redisClient.rPush(queueKey, chat.id.toString());
+
+    res.status(201).json({ chatId: chat.id, status: "WAITING" });
+    return;
+  } catch (e: any) {
+    console.log("Error in widgetStartChat: ", e);
+    res.status(500).json({ error: "Internal Server Error" });
     return;
   }
-
-  // Create chat with WAITING status
-  const chat = await prismaClient.chat.create({
-    data: {
-      status: "WAITING",
-      customerId: customer.id,
-      categoryId: categoryId as number
-    }
-  });
-  res.status(201).json({ chatId: chat.id, status: "WAITING" });
 };
 
 
-// 4. for listing the previous chats
+
+// For listing the previous chats history
 export const widgetGetChats: RequestHandler = async (req : Request, res : Response) : Promise<void> => {
   const customer = req.customer!;
   const chats = await prismaClient.chat.findMany({
@@ -86,11 +109,11 @@ export const widgetGetChats: RequestHandler = async (req : Request, res : Respon
   res.status(200).json(chats);
 };
 
-// 5. Get Messages in a Chat (after agent assignment, for reference)
+// Get Messages in a Chat (after agent assignment, for reference)
 export const widgetGetChatMessages: RequestHandler = async (req : Request, res : Response) : Promise<void> => {
   const customer = req.customer!;
   const { chatId } = req.params;
-  const chat = await prismaClient.chat.findFirst({ where: { id: Number(chatId), customerId: customer.id } });
+  const chat = await prismaClient.chat.findFirst({ where: { id: chatId, customerId: customer.id } });
   if (!chat) {
     res.status(404).json({ message: "Chat not found." });
     return;

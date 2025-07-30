@@ -1,21 +1,22 @@
-import { useCurrentUser, useOrganization } from "@/hooks/auth.js";
+import { useState } from "react";
+import { AgentAssignNextChatButton } from "@/components/agentChat/AgentAssignNextChatButton.js";
+import { AgentEmptyChatPage } from "@/components/agentChat/AgentEmptyChatPage.js";
+import { AgentChatPage } from "@/components/agentChat/AgentChatPage.js";
+import { useAgentChatStore } from "@/stores/agentChatStore.js";
 
 export default function Dashboard() {
-  const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
+  const currentChatId = useAgentChatStore((s) => s.currentChatId);
+  const [showEmpty, setShowEmpty] = useState(false);
 
-  const { data: currentOrg, isLoading: isLoadingOrg } = useOrganization(
-    currentUser?.organizationId
-  );
-  console.log(currentUser);
-  console.log("---------------");
-  console.log(currentOrg);
-
-  if (isLoadingUser || isLoadingOrg) return <h1>Loading...</h1>;
+  if (currentChatId) return <AgentChatPage />;
+  if (showEmpty) return <AgentEmptyChatPage />;
 
   return (
-    <div className="text-sm font-semibold">
-      <h1>Welcome, {currentUser?.name}</h1>
-      <p>Organization: {currentOrg?.name}</p>
+    <div className="flex items-center justify-center h-full w-full">
+      <AgentAssignNextChatButton
+        onAssigned={() => setShowEmpty(false)}
+        onEmpty={() => setShowEmpty(true)}
+      />
     </div>
   );
 }

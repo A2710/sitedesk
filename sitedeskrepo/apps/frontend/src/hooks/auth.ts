@@ -22,6 +22,10 @@ async function doSignin(data: UserSigninInput): Promise<AuthResponse> {
     .then(res => res.data);
 }
 
+export async function doLogout() {
+  return apiClient.post('/auth/logout').then(res => res.data);
+}
+
 export const useSignUp = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -29,6 +33,7 @@ export const useSignUp = () => {
     mutationFn: (data: UserSignupInput) => doSignup(data),
     onSuccess: (response) => {
       queryClient.setQueryData(['currentUser'], response.user);
+      localStorage.setItem("agentJWT", response.token);
       navigate('/');
     },
     onError: (error) => {
@@ -45,6 +50,7 @@ export const useSignIn = () => {
     mutationFn: (data: UserSigninInput) => doSignin(data),
     onSuccess: (response: AuthResponse) => {
       queryClient.setQueryData(['currentUser'], response.user);
+      localStorage.setItem("agentJWT", response.token);
       navigate('/');
     },
     onError: (error) => {
@@ -75,5 +81,25 @@ export function useOrganization(orgId?: number) {
     },
     enabled: !!orgId,
     staleTime: Infinity,
+  });
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: doLogout,
+    onSuccess: () => {
+      queryClient.removeQueries({queryKey: ['currentUser']});
+      localStorage.removeItem('agentJWT');
+      navigate('/login');
+    },
+    onError: (err) => {
+      console.error('Logout failed', err);
+      queryClient.removeQueries({queryKey: ['currentUser']});
+      localStorage.removeItem('agentJWT');
+      navigate('/login');
+    },
   });
 }

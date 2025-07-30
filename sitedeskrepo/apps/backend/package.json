@@ -12,16 +12,19 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@repo/typescript-config": "workspace:*",
-    "@types/cookie-parser": "^1.4.9",
     "@repo/common": "workspace:*",
     "@repo/db": "workspace:*",
+    "@repo/redis": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "@types/cookie-parser": "^1.4.9",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "redis": "^5.6.1",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
@@ -29,6 +32,8 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.3",
+    "@types/redis": "^4.0.11",
+    "@types/socket.io": "^3.0.2",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

@@ -176,7 +176,7 @@ export const customerSchema = z.object({
 export type CustomerInput = z.infer<typeof customerSchema>;
 
 export const startChatSchema = z.object({
-  categoryId: z.number().int().positive().optional(),
+  categoryId: z.number().int().positive(),
   initialMessage: z.string().optional(),
 });
 export type StartChatInput = z.infer<typeof startChatSchema>;
@@ -199,11 +199,38 @@ export const addCustomerNoteSchema = z.object({
 });
 export type AddCustomerNoteInput = z.infer<typeof addCustomerNoteSchema>;
 
+export interface Customer {
+  id: number;
+  name?: string;
+  email?: string;
+}
+
+export interface Chat {
+  id: number;
+  customerId: number;
+  customer?: Customer;
+  // Add category, status etc as needed
+}
+
+export type SenderType = "AGENT" | "CUSTOMER";
+
+export interface Message {
+  id: number;
+  chatId: number;
+  content: string;
+  senderId: number;
+  senderType: SenderType;
+  receiverId: number;
+  receiverType: SenderType;
+  createdAt: string; // ISO date string
+}
+
+
 //
 // ── FEEDBACK ──────────────────────────────────────────────────────────────────
 //
 export const submitFeedbackSchema = z.object({
-  chatId: z.number().int().positive(),
+  chatId: z.string(),
   rating: z.number().int().min(1).max(5),
   comment: z.string().optional(),
 });

@@ -4,11 +4,13 @@ import {
   getChatById,
   agentSendMessage,
   listWaitingChats,
-  agentAssignChat,
+  // agentAssignChat,
   listAllOrgChats,
   agentGetChatMessages,
   closeChat,
-  addCustomerNote
+  addCustomerNote,
+  assignNextChat,
+  cancelChat
 } from "../controllers/agent.chat.controller";
 import { authenticateJWT, requireRole } from "@repo/common/middleware";
 
@@ -20,10 +22,12 @@ router.get("/", listAllOrgChats);
 router.get("/my", listMyChats);
 router.get("/waiting", listWaitingChats);
 router.get("/:chatId", getChatById);
+router.get("/next-chat", assignNextChat);
 
-router.post("/:chatId/assign", requireRole("ADMIN", "AGENT"), agentAssignChat);
+// router.post("/:chatId/assign", requireRole("ADMIN", "AGENT"), agentAssignChat);
 router.post("/:chatId/messages", agentGetChatMessages);
 router.post("/:chatId/message", agentSendMessage);
+router.post("/:chatId/cancel", cancelChat);
 router.post("/:chatId/close", closeChat);
 
 router.post("/:chatId/note", addCustomerNote);
