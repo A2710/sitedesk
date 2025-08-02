@@ -1,4 +1,3 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
 import { useCurrentUser } from "../hooks/auth.js";
 import { Sidebar } from "../components/SideBar.js";

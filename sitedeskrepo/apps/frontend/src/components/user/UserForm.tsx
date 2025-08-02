@@ -1,11 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  adminUserCreateSchema,
-  adminUserUpdateSchema,
-  AdminUserCreateInput,
-  AdminUserUpdateInput,
-} from "@repo/common/types";
+import type { AdminUserCreateInput,AdminUserUpdateInput } from "@repo/common/types";
+import { adminUserCreateSchema, adminUserUpdateSchema } from "@repo/common/types";
 import { useAddUser, useEditUser } from "@/hooks/users.js";
 import { useTeams } from "@/hooks/team.js";
 import { Button } from "@/components/ui/button.js";
@@ -108,13 +104,13 @@ export function UserForm({ id, defaultValues, onSuccess }: Props) {
                       className="relative"
                     />
                 </FormControl>
-                <button 
+                <Button 
                     type="button" 
                     onClick={() => setShowPassword(showPassword => !showPassword)} 
                     className="absolute right-10 top-51 text-gray-600 hover:text-gray-900"
                 >
                     {showPassword ? <Eye size={18} /> : <EyeClosed size={18} />}
-                </button>
+                </Button>
                 <FormMessage />
               </FormItem>
             )}
@@ -133,13 +129,13 @@ export function UserForm({ id, defaultValues, onSuccess }: Props) {
                       type={showPassword ? "text" : "password"}
                       className="relative"
                     /></FormControl>
-                <button 
+                <Button 
                     type="button" 
                     onClick={() => setShowPassword(showPassword => !showPassword)} 
                     className="absolute right-10 top-51 text-gray-600 hover:text-gray-900"
                 >
                     {showPassword ? <Eye size={18} /> : <EyeClosed size={18} />}
-                </button>
+                </Button>
                 <FormMessage />
               </FormItem>
             )}

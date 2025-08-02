@@ -21,11 +21,11 @@ router.use(authenticateJWT, requireRole("AGENT", "ADMIN"));
 router.get("/", listAllOrgChats);
 router.get("/my", listMyChats);
 router.get("/waiting", listWaitingChats);
-router.get("/:chatId", getChatById);
 router.get("/next-chat", assignNextChat);
+router.get("/:chatId/messages", agentGetChatMessages);
+router.get("/:chatId", getChatById);
 
 // router.post("/:chatId/assign", requireRole("ADMIN", "AGENT"), agentAssignChat);
-router.post("/:chatId/messages", agentGetChatMessages);
 router.post("/:chatId/message", agentSendMessage);
 router.post("/:chatId/cancel", cancelChat);
 router.post("/:chatId/close", closeChat);

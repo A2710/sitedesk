@@ -1,6 +1,6 @@
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button.js";
-import { categoriesOutput } from "@repo/common/types";
+import type { categoriesOutput } from "@repo/common/types";
 import { ConfirmDialog } from "../utils/confirmDialog.js";
 
 type ActionHandlers = {

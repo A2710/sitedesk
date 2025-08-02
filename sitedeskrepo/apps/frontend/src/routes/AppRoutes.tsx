@@ -9,6 +9,7 @@ import CategoriesPage from "@/pages/categories/index.js";
 import TeamsPage from "@/pages/teams/index.js";
 import UserListPage from "@/pages/users/index.js";
 import OrgDomainPage from "@/pages/orgDomain/index.js";
+import { ChatHistoryPage } from "@/pages/myChats/index.js";
 // Import other pages as needed
 
 export default function AppRoutes() {
@@ -28,6 +29,7 @@ export default function AppRoutes() {
         <Route path="categories" element={<CategoriesPage/>} />
         <Route path="teams" element={<TeamsPage/>} />
         <Route path="domain" element={<OrgDomainPage />}></Route>
+        <Route path="my-chats" element={<ChatHistoryPage />}></Route>
         {/* Example nested routes: */}
         {/* <Route path="chats" element={<ChatsPage />} /> */}
         {/* <Route path="profile" element={<ProfilePage />} /> */}

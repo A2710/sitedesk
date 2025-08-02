@@ -145,8 +145,8 @@ model Message {
   chat       Chat      @relation(fields: [chatId], references: [id])
   chatId     String
   senderType String    // 'customer' or 'agent'
-  receiverType String   // 'customer' or 'agent'
-  receiverId   Int
+  receiverType String?   // 'customer' or 'agent'
+  receiverId   Int?
   senderId   Int
   content    String
   organization Organization @relation(fields: [organizationId], references: [id])

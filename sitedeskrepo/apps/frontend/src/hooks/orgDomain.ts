@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/api/apiClient.js";
-import { OrgDomainInput } from "@repo/common/types";
+import type { OrgDomainInput } from "@repo/common/types";
 
 // List all domains
 export function useOrgDomains() {

@@ -48,10 +48,15 @@ export const orgDomainSchema = z.object({
     .string()
     .min(3)
     .max(253)
+    //for testing
     .regex(
-      /^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/,
+      /^([a-zA-Z0-9][a-zA-Z0-9-_]*(\.[a-zA-Z0-9][a-zA-Z0-9-_]*)*\.[a-zA-Z]{2,11}|localhost|localhost:\d{1,5}|127\.0\.0\.1(:\d{1,5})?)$/,
       "Invalid domain format"
-    ),
+    )
+    // .regex(
+    //   /^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/,
+    //   "Invalid domain format"
+    // ),
 });
 export type OrgDomainInput = z.infer<typeof orgDomainSchema>;
 
@@ -181,9 +186,65 @@ export const startChatSchema = z.object({
 });
 export type StartChatInput = z.infer<typeof startChatSchema>;
 
+// --- Customer returned from /customer/login ---
+export interface WidgetCustomer {
+  id: number;
+  name: string;
+  email: string;
+  organizationId: number;
+}
+
+// --- /customer/login response ---
+export interface WidgetLoginResponse {
+  token: string;
+  customer: WidgetCustomer;
+}
+
+// --- Category returned from /categories ---
+export interface WidgetCategory {
+  id: number;
+  name: string;
+}
+
+// --- Start Chat API response ---
+export interface WidgetStartChatResponse {
+  chatId: string;
+  status: string; // e.g. "WAITING"
+}
+
+// --- Widget chat for chat list ---
+export interface WidgetChat {
+  id: string;
+  status: string;
+  createdAt: string;
+  categoryId: number;
+  customerId: number;
+}
+
+// --- Message (matches backend) ---
+export interface WidgetMessage {
+  id: string;
+  chatId: number;
+  content: string;
+  senderId: number;
+  senderType: "AGENT" | "CUSTOMER";
+  receiverId: number | null;
+  receiverType: "AGENT" | "CUSTOMER";
+  createdAt: string;
+}
+
+// --- End chat response ---
+export interface WidgetEndChatResponse {
+  message: string; // "Chat ended."
+}
+
+
 //
 // ── AGENT CHAT ────────────────────────────────────────────────────────────────
 //
+
+export type Status = "ACTIVE" | "CLOSED" | "WAITING";
+
 export const assignChatSchema = z.object({
   agentId: z.number().int().positive().optional(),
 });
@@ -206,7 +267,7 @@ export interface Customer {
 }
 
 export interface Chat {
-  id: number;
+  id: string;
   customerId: number;
   customer?: Customer;
   // Add category, status etc as needed
@@ -215,8 +276,8 @@ export interface Chat {
 export type SenderType = "AGENT" | "CUSTOMER";
 
 export interface Message {
-  id: number;
-  chatId: number;
+  id: string;
+  chatId: string;
   content: string;
   senderId: number;
   senderType: SenderType;

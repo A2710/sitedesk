@@ -17,7 +17,7 @@ export const generateToken = (payload: JwtPayload, secretString: string = ""):st
     }
 
     const options: jwt.SignOptions = {
-      expiresIn: payload.role === "CUSTOMER" ? "1h" : "7d",
+      expiresIn: payload.role === "CUSTOMER" ? "1d" : "7d",
       algorithm: "HS256"
     }
 

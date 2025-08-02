@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createTeamSchema, CreateTeamInput } from "@repo/common/types";
-import { Button } from "@/components/ui/button.js";
+import type {CreateTeamInput} from "@repo/common/types";
+import { createTeamSchema } from "@repo/common/types";
 import { Input } from "@/components/ui/input.js";
 import {
   Form,

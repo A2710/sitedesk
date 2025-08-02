@@ -1,23 +1,28 @@
 import { RequestHandler, Request, Response } from "express";
 import { prismaClient } from "@repo/db/client";
 import { sendMessageSchema, SendMessageInput, addCustomerNoteSchema, AddCustomerNoteInput } from "@repo/common/types";
+import type { Status } from "@repo/common/types";
 import { redisClient } from "@repo/redis";
 import { io } from "../socket";
 import { error } from "console";
 
 // List all chats assigned to the agent in org
-export const listMyChats = async (req : Request, res: Response) : Promise<void> => {
+export const listMyChats = async (req: Request, res: Response): Promise<void> => {
   try {
-    const agentId: number = req.user!.id;
-    const organizationId: number = req.user!.organizationId;
+    const agentId       = req.user!.id;
+    const organizationId = req.user!.organizationId;
+    const statusParam   = (req.query.status as Status | undefined)?.toUpperCase();
+
+    // Build dynamic `where` filter
+    const where: any = { agentId, organizationId };
+    if (statusParam) {
+      where.status = statusParam;
+    }
 
     const chats = await prismaClient.chat.findMany({
-      where: {
-        agentId,
-        organizationId
-      },
+      where,
       include: { customer: true, category: true },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
     });
 
     res.status(200).json(chats);
@@ -101,6 +106,8 @@ export const listWaitingChats: RequestHandler = async (req : Request, res: Respo
   }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------
+
 // Auto-assign next chat in org (uses Redis queue)
 export const assignNextChat: RequestHandler = async (
   req: Request,
@@ -109,98 +116,144 @@ export const assignNextChat: RequestHandler = async (
   const agentId: number = req.user!.id;
   const organizationId: number = req.user!.organizationId;
 
-  const agent = await prismaClient.user.findUnique({
-    where: { id: agentId, organizationId },
-    include: {
-      teams: {
-        include: {
-          team: { include: { categories: true } }
+  try {
+    // Step 1: Does agent already have an active chat? Return it.
+    const activeChat = await prismaClient.chat.findFirst({
+      where: {
+        agentId,
+        organizationId,
+        status: "ACTIVE"
+      },
+      include: {
+        customer: true,
+        category: true,
+        messages: true
+      }
+    });
+    if (activeChat) {
+      res.status(200).json({
+        message: "Already assigned an active chat.",
+        chat: activeChat
+      });
+      return;
+    }
+
+    // Step 2: Find eligible categories for this agent
+    const agent = await prismaClient.user.findUnique({
+      where: { id: agentId, organizationId },
+      include: {
+        teams: {
+          include: {
+            team: { include: { categories: true } }
+          }
+        }
+      }
+    });
+
+    if (!agent) {
+      res.status(404).json({ message: "Agent not found in this organization" });
+      return;
+    }
+
+    // Step 3: Find the oldest WAITING chat across all allowed categories
+    const categoryIds = new Set<number>();
+    agent.teams.forEach((ut) =>
+      ut.team.categories.forEach((tc) => categoryIds.add(tc.categoryId))
+    );
+
+    let minChatId: string | null = null;
+    let minCategoryId: number | null = null;
+    let minCreatedAt = Number.MAX_SAFE_INTEGER;
+
+    for (const categoryId of categoryIds) {
+      const queueKey = `queue:org:${organizationId}:category:${categoryId}`;
+      const chatId = await redisClient.lIndex(queueKey, 0); // just peek!
+      // DEBUG: Show queue content
+      const chats = await redisClient.lRange(queueKey, 0, -1);
+      console.log(`Queue [${queueKey}]:`, chats);
+
+      if (chatId) {
+        // Make sure chat still exists and is waiting
+        const chat = await prismaClient.chat.findUnique({
+          where: { id: chatId },
+          select: { createdAt: true, status: true }
+        });
+
+        if (chat && chat.status === "WAITING" && chat.createdAt.getTime() < minCreatedAt) {
+          minCreatedAt = chat.createdAt.getTime();
+          minChatId = chatId;
+          minCategoryId = categoryId;
         }
       }
     }
-  });
 
-  if (!agent) {
-    res.status(404).json({ message: "Agent not found in this organization" });
-    return;
-  }
+    // Step 4: No chat found
+    if (!minChatId || !minCategoryId) {
+      res.status(204).json({ message: "No waiting chats" });
+      return;
+    }
 
-  // Collect unique category IDs for this org
-  const categoryIds = new Set<number>();
-  agent.teams.forEach((ut) =>
-    ut.team.categories.forEach((tc) => categoryIds.add(tc.categoryId))
-  );
-
-  // logic to find the oldest chat across all eligible categories
-  let minChatId: string | null = null;
-  let minCategoryId: number | null = null;
-  let minCreatedAt = Number.MAX_SAFE_INTEGER;
-
-  for (const categoryId of categoryIds) {
-    const queueKey = `queue:org:${organizationId}:category:${categoryId}`;
-    const chatId = await redisClient.lIndex(queueKey, 0); // here we peek the oldest chat
-
-    if (chatId) {
-      // fetch chat's createdAt to decide oldest
-      const chat = await prismaClient.chat.findUnique({
-        where: { id: chatId },
-        select: { createdAt: true }
-      });
-
-      if (chat && chat.createdAt.getTime() < minCreatedAt) {
-        minCreatedAt = chat.createdAt.getTime();
-        minChatId = chatId;
-        minCategoryId = categoryId;
+    // Step 5: Try to assign the chat in DB (only if still WAITING)
+    const updatedChat = await prismaClient.chat.update({
+      where: { id: minChatId, organizationId, status: "WAITING", agentId: null },
+      data: { agentId, status: "ACTIVE" },
+      include: {
+        customer: true,
+        category: true,
+        messages: true
       }
+    }).catch(() => null);
+
+    if (!updatedChat) {
+      // Someone else picked the chat, retry logic: find if you got assigned anything now
+      const fallbackActive = await prismaClient.chat.findFirst({
+        where: {
+          agentId,
+          organizationId,
+          status: "ACTIVE"
+        },
+        include: {
+          customer: true,
+          category: true,
+          messages: true
+        }
+      });
+      if (fallbackActive) {
+        res.status(200).json({
+          message: "Assigned chat found after retry.",
+          chat: fallbackActive
+        });
+        return;
+      }
+      res.status(409).json({ message: "Chat already picked up by another agent" });
+      return;
     }
-  }
 
-  // No chat found
-  if (!minChatId || !minCategoryId) {
-    res.status(204).json({ message: "No waiting chats" });
-    return;
-  }
-
-  // Popping the oldest chat from the queue - which is min based on timestamp
-  const queueKey = `queue:org:${organizationId}:category:${minCategoryId}`;
-  const poppedChatId = await redisClient.lPop(queueKey);
-
-  if (!poppedChatId) {
-    // Queue was empty
-    res.status(409).json({ message: "Chat already picked up by another agent" });
-    return;
-  }
-
-  if (poppedChatId !== minChatId) {
-    // Put it back at the start of the queue because it's not the chat we intended
-    await redisClient.lPush(queueKey, poppedChatId);
-
-    res.status(409).json({ message: "Chat already picked up by another agent" });
-    return;
-  }
-
-
-  // 5. Assign agent in DB and mark chat ACTIVE
-  const updatedChat = await prismaClient.chat.update({
-    where: { id: minChatId, organizationId },
-    data: { agentId, status: "ACTIVE" },
-    include: {
-      customer: true,
-      category: true,
-      messages: true
+    // Step 6: Now pop from queue (so it's not lost in crash)
+    const queueKey = `queue:org:${organizationId}:category:${minCategoryId}`;
+    const poppedChatId = await redisClient.lPop(queueKey);
+    // Edge case: if it's not the chat we intended, push it back
+    if (poppedChatId && poppedChatId !== minChatId) {
+      await redisClient.lPush(queueKey, poppedChatId);
     }
-  });
 
-  // 5. Notify agent and customer via Socket.io
-  io.to(`agent:${agentId}`).emit("chat_assigned", { chat: updatedChat });
-  io.to(`customer:${updatedChat.customer.id}`).emit("chat_assigned", { chat: updatedChat });
+    // Step 7: Notify agent and customer via Socket.io
+    io.to(`agent:${agentId}`).emit("chat_assigned", { chat: updatedChat });
+    io.to(`customer:${updatedChat.customer.id}`).emit("chat_assigned", { chat: updatedChat });
 
-  res.status(200).json({
-    message: "Chat assigned successfully",
-    chat: updatedChat
-  });
+    res.status(200).json({
+      message: "Chat assigned successfully",
+      chat: updatedChat
+    });
+
+  } catch (e) {
+    console.error("assignNextChat error:", e);
+    res.status(500).json({ message: "Internal Server Error!" });
+  }
 };
 
+
+//--------------------------------------------------------------------------------------------------------------------------------------
 
 // Get all messages for a chat (org scoped)
 export const agentGetChatMessages: RequestHandler = async (req : Request, res: Response) : Promise<void> => {

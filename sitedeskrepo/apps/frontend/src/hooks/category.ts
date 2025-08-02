@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/api/apiClient.js"; // .js extension
-import { categoriesOutput, CategoryInput, editCategoryInput, deleteCategoryInput } from "@repo/common/types";
+import type { categoriesOutput, CategoryInput, editCategoryInput, deleteCategoryInput } from "@repo/common/types";
 
 async function addCategory(data: CategoryInput): Promise<categoriesOutput> {
     return apiClient

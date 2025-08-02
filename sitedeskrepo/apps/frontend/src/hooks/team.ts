@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/api/apiClient.js";
-import { CreateTeamInput, ListTeamsOutput, TeamCreateOutput } from "@repo/common/types";
+import type { CreateTeamInput, ListTeamsOutput, TeamCreateOutput } from "@repo/common/types";
 
 // List teams
 export function useTeams() {

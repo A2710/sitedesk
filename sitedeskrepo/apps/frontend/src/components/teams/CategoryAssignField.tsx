@@ -8,8 +8,7 @@ import {
   CommandList,
   CommandItem,
 } from "@/components/ui/command.js";
-import { Button } from "@/components/ui/button.js";
-import { ListTeamsCategory } from "@repo/common/types";
+import type { ListTeamsCategory } from "@repo/common/types";
 import { WhiteBlackButton } from "../utils/WhiteBlackButton.js";
 import { WhiteRedButton } from "../utils/WhiteRedButton.js";
 import { X } from "lucide-react";

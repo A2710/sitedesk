@@ -1,8 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { categorySchema, CategoryInput } from "@repo/common/types";
+import { categorySchema } from "@repo/common/types";
+import type {CategoryInput} from "@repo/common/types";
 import { useAddCategory, useEditCategory } from "@/hooks/category.js";
-import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import {
   Form,

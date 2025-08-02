@@ -5,7 +5,8 @@ import {
   widgetStartChat,
   widgetGetChats,
   widgetGetChatMessages,
-  widgetGetCategories
+  widgetGetCategories,
+  widgetCancelChat
 } from "../controllers/widget.controller";
 
 const router: Router = express.Router();
@@ -17,5 +18,5 @@ router.post("/categories", authenticateJWT, requireCustomer, widgetGetCategories
 router.post("/chat/start", authenticateJWT, requireCustomer, widgetStartChat);
 router.get("/chat", authenticateJWT, requireCustomer, widgetGetChats);
 router.get("/chat/:chatId/messages", authenticateJWT, requireCustomer, widgetGetChatMessages);
-
+router.post("/chat/:chatId/cancel", authenticateJWT, requireCustomer, widgetCancelChat);
 export default router;

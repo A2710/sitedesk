@@ -18,6 +18,6 @@
   router.post("/", requireRole("ADMIN"), createUser);
   router.put("/:id", updateUser);
   router.delete("/:id", requireRole("ADMIN"), deleteUser);
-  router.use("/chats", agentChatRoutes);
+  router.use("/chats", requireRole("ADMIN", "AGENT"), agentChatRoutes);
 
   export default router;

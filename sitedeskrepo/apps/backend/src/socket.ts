@@ -19,7 +19,7 @@ let io: IOServer;
 export async function setupSocketHandlers(server: HTTPServer) {
   io = new IOServer(server, {
     cors: {
-      origin: ["http://localhost:5173"], // Add more origins as needed
+      origin: ["http://localhost:5173", "http://localhost:5174"], // Add more origins as needed
       credentials: true,
     },
   });
@@ -86,10 +86,16 @@ export async function setupSocketHandlers(server: HTTPServer) {
       socket.leave(`chat_${chatId}`);
     });
 
-    // --- Typing indicator ---
-    socket.on("typing", ({ chatId }) => {
-      socket.to(`chat_${chatId}`).emit("typing", { senderId: userId });
+    // --- Typing indicator --
+
+    socket.on("typing", ({ chatId, senderType }) => {
+      socket.to(`chat_${chatId}`).emit("typing", { chatId, senderType });
     });
+
+    socket.on("stop_typing", ({ chatId, senderType }) => {
+      socket.to(`chat_${chatId}`).emit("stop_typing", { chatId, senderType });
+    });
+
 
     // --- Send message ---
     socket.on("send_message", async ({ chatId, text }) => {
@@ -106,24 +112,30 @@ export async function setupSocketHandlers(server: HTTPServer) {
       let receiverType: "AGENT" | "CUSTOMER" | undefined;
 
       if (role === "AGENT" && chat.agentId === userId) {
+        console.log("message arrived by: ", user.id, ", role: ", user.role, ", name: ", user.name);
         senderType = "AGENT";
         receiverId = chat.customerId;
         receiverType = "CUSTOMER";
-      } else if (role === "CUSTOMER" && chat.customerId === userId) {
+      }
+      else if (role === "CUSTOMER" && chat.customerId === userId) {
+        //testing
+        console.log("message arrived by: ", user.id, ", role: ", user.role, ", name: ", user.name);
         senderType = "CUSTOMER";
         receiverId = chat.agentId;
         receiverType = "AGENT";
-      } else {
-        // Not allowed
+      }
+      else {
         return;
       }
 
-      if(receiverId == null)
-      {
-        return;
-      }
+      // if(receiverId == null)
+      // {
+      //   return;
+      // }
       
       // Persist message
+      //testing
+        // console.log("message persistance trying: ", user.id, ", role: ", user.role, ", name: ", user.name);
       const message = await prismaClient.message.create({
         data: {
           chatId,
@@ -149,6 +161,25 @@ export async function setupSocketHandlers(server: HTTPServer) {
         createdAt: message.createdAt,
       });
     });
+
+    socket.on("complete_chat", async ({ chatId }) => {
+      const chat = await prismaClient.chat.findUnique({
+        where: { id: chatId },
+        select: { agentId: true, organizationId: true }
+      });
+      if (!chat || chat.organizationId !== organizationId) return;
+      if (role !== "AGENT" || chat.agentId !== userId) return;
+
+      // Update chat status in DB
+      await prismaClient.chat.update({
+        where: { id: chatId },
+        data: { status: "CLOSED" }
+      });
+
+      // Notify all in the chat room
+      io.to(`chat_${chatId}`).emit("chat_completed", { chatId });
+    });
+
 
     // --- Disconnect handling ---
     socket.on("disconnect", () => {

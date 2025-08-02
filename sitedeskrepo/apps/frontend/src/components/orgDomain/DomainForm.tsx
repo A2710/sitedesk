@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { orgDomainSchema, OrgDomainInput } from "@repo/common/types";
-import { Button } from "@/components/ui/button.js";
+import { orgDomainSchema } from "@repo/common/types";
+import type {OrgDomainInput} from "@repo/common/types";
 import { Input } from "@/components/ui/input.js";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form.js";
 import { BlackWhiteButton } from "../utils/BlackWhiteButton.js";

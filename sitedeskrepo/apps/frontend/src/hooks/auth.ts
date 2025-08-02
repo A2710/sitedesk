@@ -1,10 +1,9 @@
-import { useMutation, useQuery, QueryClient, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../api/apiClient.js';
 import { useNavigate } from 'react-router-dom';
-import {
+import type {
   UserSigninInput,
   UserSignupInput,
-  JwtPayload,
   AuthResponse,
   GetMeResponse,
   OrganizationBase
