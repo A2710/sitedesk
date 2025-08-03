@@ -1,6 +1,6 @@
 import { Request, Response, RequestHandler } from "express";
 import { prismaClient } from "@repo/db/client";
-import { customerSchema, CustomerInput, startChatSchema, StartChatInput } from "@repo/common/types";
+import { customerSchema, CustomerInput, startChatSchema, StartChatInput, submitFeedbackSchema, SubmitFeedbackInput } from "@repo/common/types";
 import { generateToken } from "@repo/common/utils";
 import { promises } from "dns";
 import { redisClient } from "@repo/redis";
@@ -138,10 +138,6 @@ export const widgetStartChat: RequestHandler = async (req: Request, res: Respons
   }
 };
 
-
-
-
-// For listing the previous chats history
 export const widgetGetChats: RequestHandler = async (req : Request, res : Response) : Promise<void> => {
   const customer = req.customer!;
   const chats = await prismaClient.chat.findMany({
@@ -152,7 +148,6 @@ export const widgetGetChats: RequestHandler = async (req : Request, res : Respon
   res.status(200).json(chats);
 };
 
-// Get Messages in a Chat (after agent assignment, for reference)
 export const widgetGetChatMessages: RequestHandler = async (req : Request, res : Response) : Promise<void> => {
   const customer = req.customer!;
   const { chatId } = req.params;
@@ -173,7 +168,6 @@ export const widgetCancelChat: RequestHandler = async (req : Request, res : Resp
   const customer = req.customer!;
   const { chatId } = req.params;
 
-  // Confirm chat exists, belongs to customer, and is not already closed
   const chat = await prismaClient.chat.findFirst({
     where: {
       id: chatId,
@@ -187,7 +181,6 @@ export const widgetCancelChat: RequestHandler = async (req : Request, res : Resp
     return;
   }
 
-  // Mark chat as CLOSED, remove agent assignment, set closedAt
   await prismaClient.chat.update({
     where: { id: chatId },
     data: { agentId: null, status: "CLOSED", closedAt: new Date() }
@@ -195,3 +188,26 @@ export const widgetCancelChat: RequestHandler = async (req : Request, res : Resp
 
   res.status(200).json({ message: "Chat ended." });
 };
+
+
+export async function submitFeedback(req: Request, res: Response) {
+  
+  const parse = submitFeedbackSchema.safeParse(req.body);
+  if (!parse.success) {
+    return res.status(400).json({ errors: parse.error.message});
+  }
+  const { chatId, rating, comment } = parse.data as SubmitFeedbackInput;
+
+  try {
+    
+    const feedback = await prismaClient.feedback.upsert({
+      where: { chatId },
+      create: { chatId, rating, comment },
+      update: { rating, comment },
+    });
+    return res.status(201).json(feedback);
+  } catch (err) {
+    console.error('Error saving feedback:', err);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}

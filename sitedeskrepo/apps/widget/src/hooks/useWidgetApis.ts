@@ -10,11 +10,12 @@ import type {
   WidgetChat,
   WidgetMessage,
   WidgetEndChatResponse,
+  SubmitFeedbackInput,
+  WidgetFeedbackResponse,
 } from "@repo/common/types";
 
 // Set JWT for all apiClient requests
 function setAuthToken(token: string | null) {
-  console.log("token", token);  
   if (token) apiClient.defaults.headers.Authorization = `Bearer ${token}`;
   else delete apiClient.defaults.headers.Authorization;
 }
@@ -81,6 +82,17 @@ export function useWidgetApi() {
       refetchOnWindowFocus: true,
     });
 
+
+  // --- SUBMIT FEEDBACK ---
+
+  const submitFeedbackMutation = useMutation<WidgetFeedbackResponse, Error, SubmitFeedbackInput>({
+    mutationFn: async (data: SubmitFeedbackInput) =>
+      await apiClient.post("/chat/feedback", data).then(r => r.data as WidgetFeedbackResponse),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+    },
+  });
+
   // --- END CHAT ---
   const endChatMutation = useMutation<WidgetEndChatResponse, any, string>({
     mutationFn: async (chatId: string) =>
@@ -97,5 +109,6 @@ export function useWidgetApi() {
     loginMutation,
     startChatMutation,
     endChatMutation,
+    submitFeedbackMutation
   };
 }

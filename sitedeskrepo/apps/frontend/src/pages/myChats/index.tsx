@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useMyChats, useChatMessages } from "@/hooks/useAgentChat";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { Chat, Message } from "@repo/common/types";

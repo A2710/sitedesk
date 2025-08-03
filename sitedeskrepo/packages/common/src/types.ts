@@ -296,3 +296,11 @@ export const submitFeedbackSchema = z.object({
   comment: z.string().optional(),
 });
 export type SubmitFeedbackInput = z.infer<typeof submitFeedbackSchema>;
+
+export interface WidgetFeedbackResponse {
+  id: string;
+  chatId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: Date;
+}

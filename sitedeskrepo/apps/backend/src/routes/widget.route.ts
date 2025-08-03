@@ -6,7 +6,8 @@ import {
   widgetGetChats,
   widgetGetChatMessages,
   widgetGetCategories,
-  widgetCancelChat
+  widgetCancelChat,
+  submitFeedback
 } from "../controllers/widget.controller";
 
 const router: Router = express.Router();
@@ -16,6 +17,7 @@ router.post("/customer/login", resolveOrgFromDomain, widgetCustomerLogin);
 router.post("/categories", authenticateJWT, requireCustomer, widgetGetCategories);
 // The rest require the customer to be authenticated (JWT, set by login above)
 router.post("/chat/start", authenticateJWT, requireCustomer, widgetStartChat);
+router.post("/chat/feedback", authenticateJWT, requireCustomer, submitFeedback);
 router.get("/chat", authenticateJWT, requireCustomer, widgetGetChats);
 router.get("/chat/:chatId/messages", authenticateJWT, requireCustomer, widgetGetChatMessages);
 router.post("/chat/:chatId/cancel", authenticateJWT, requireCustomer, widgetCancelChat);

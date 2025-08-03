@@ -10,7 +10,6 @@ export function useWidgetSocket() {
   const addMessage = useWidgetStore((s) => s.addMessage);
   const currentChat = useWidgetStore((s) => s.currentChat);
   const setStatus = useWidgetStore((s) => s.setStatus);
-  const resetStore = useWidgetStore((s) => s.reset);
 
   useEffect(() => {
     if (!token || !currentChat) return;
@@ -29,12 +28,9 @@ export function useWidgetSocket() {
       addMessage(msg);
     });
 
-    socket.on("chat_completed", (chatId: string) => {
+    socket.on("chat_completed", () => {
       // console.log("The chat is completed: ", chatId);
-      setStatus("ENDED");
-      setTimeout(() => {
-        resetStore();
-      }, 1000);
+      setStatus("EXIT");
     });
 
     socket.on("typing", ({ chatId, senderType }) => {

@@ -16,7 +16,7 @@ type WidgetState = {
   token: string | null;
   currentChat: WidgetChat | null;
   chatMessages: WidgetMessage[];
-  status: "INIT" | "LOGGED_IN" | "IN_CHAT" | "ENDED";
+  status: "INIT" | "LOGGED_IN" | "IN_CHAT" | "EXIT" | "ENDED";
   setCustomer: (c: WidgetCustomer, token: string) => void;
   setCurrentChat: (chat: WidgetChat) => void;
   setMessages: (messages: WidgetMessage[]) => void;
@@ -58,12 +58,10 @@ export const useWidgetStore = create<WidgetState>()(
     {
       name: "widget-storage", // name of item in localStorage
       partialize: (state) => ({
-        // Only persist the critical state (avoid storing giant arrays if not needed)
         customer: state.customer,
         token: state.token,
         currentChat: state.currentChat,
         status: state.status,
-        // Optionally: chatMessages, but be careful with large chats!
       }),
     }
   )
