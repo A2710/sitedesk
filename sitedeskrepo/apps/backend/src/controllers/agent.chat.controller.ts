@@ -229,10 +229,11 @@ export const assignNextChat: RequestHandler = async (
       return;
     }
 
-    // Step 6: Now pop from queue (so it's not lost in crash)
+    // Step 6: Now pop from queue
     const queueKey = `queue:org:${organizationId}:category:${minCategoryId}`;
     const poppedChatId = await redisClient.lPop(queueKey);
-    // Edge case: if it's not the chat we intended, push it back
+    
+    // if it's not the chat we intended, push it back
     if (poppedChatId && poppedChatId !== minChatId) {
       await redisClient.lPush(queueKey, poppedChatId);
     }
